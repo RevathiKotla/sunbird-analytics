@@ -10,10 +10,11 @@ import scala.collection.Map
 object EventsReplayJob extends optional.Application with IJob {
 
   implicit val className = "org.ekstep.analytics.job.EventsReplayJob"
+  implicit val fc = new FrameworkContext();
 
   def name(): String = "EventsReplayJob"
 
-  override def main(config: String)(implicit sc: Option[SparkContext] = None): Unit = {
+  override def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None): Unit = {
 
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
     implicit val sparkContext = if (sc.isEmpty) CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse(jobConfig.model)) else sc.get
