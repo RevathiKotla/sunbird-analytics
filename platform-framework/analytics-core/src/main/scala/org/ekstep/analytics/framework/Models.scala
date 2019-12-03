@@ -203,14 +203,13 @@ case class ShareItems(id: String, `type`: String, ver: String, params: List[Map[
 @scala.beans.BeanInfo
 class V3EData(val datatype: String, val `type`: String, val dspec: Map[String, AnyRef], val uaspec: Map[String, String], val loc: String, val mode: String, val duration: Long, val pageid: String,
               val subtype: String, val uri: String, val visits: List[Visit], val id: String, val target: Map[String, AnyRef],
-              val plugin: Map[String, AnyRef], val extra: Map[String, AnyRef], val item: Question, val pass: String, val score: Int, val resvalues: Array[Map[String, AnyRef]], 
-              val values: AnyRef, val rating: Double, val comments: String, val dir: String, val items: List[ShareItems], val props : List[String], 
+              val plugin: Map[String, AnyRef], val extra: Map[String, AnyRef], val item: Question, val pass: String, val score: Int, val resvalues: Array[Map[String, AnyRef]],
+              val values: AnyRef, val rating: Double, val comments: String, val dir: String, val items: List[ShareItems], val props : List[String],
               val state: String, val prevstate: String, val err: AnyRef, val errtype: String, val stacktrace: String, val `object`: Map[String, AnyRef],
               val level: String, val message: String, val params: List[Map[String, AnyRef]], val summary: List[Map[String, AnyRef]], val index: Int, val `class`: String, val status: String, val query: String, val data: Option[AnyRef], val sort: Option[AnyRef], val correlationid: Option[String], val topn: List[AnyRef], val filters: Option[AnyRef] = None, val size: Int = 0) extends Serializable {}
 
 @scala.beans.BeanInfo
 class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null, val flags : V3FlagContent = null) extends AlgoInput with Input {}
-
 
 @scala.beans.BeanInfo
 case class V3DerivedEvent(eid: String, ets: Long, `@timestamp`: String, ver: String, mid: String, actor: Actor, context: V3Context, `object`: Option[V3Object], edata: AnyRef, tags: List[AnyRef] = null) extends AlgoOutput with Output
@@ -218,11 +217,10 @@ case class V3DerivedEvent(eid: String, ets: Long, `@timestamp`: String, ver: Str
 @scala.beans.BeanInfo
 case class V3MetricEdata(metric: String, value: AnyRef, range: Option[AnyRef] = None)
 
-
 @scala.beans.BeanInfo
 case class V3FlagContent(derived_location_retrieved: Boolean, device_data_retrieved: Boolean,
-                   user_data_retrieved: Boolean, dialcode_data_retrieved: Boolean,
-                   content_data_retrieved: Boolean, collection_data_retrieved: Boolean)
+                         user_data_retrieved: Boolean, dialcode_data_retrieved: Boolean,
+                         content_data_retrieved: Boolean, collection_data_retrieved: Boolean)
 
 // Experiment Models
 @scala.beans.BeanInfo
