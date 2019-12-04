@@ -73,6 +73,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
    */
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
       println("started the df load" , settings.get("table"))
+      println("gettting the spark" , spark.sparkContext.getConf.getAll)
     spark
       .read
       .format("org.apache.spark.sql.cassandra")
@@ -87,6 +88,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
     val sunbirdCoursesKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdCoursesKeyspace")
     val courseBatchDF = loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      println("ended the df load courseDf")
     val userCoursesDF = loadData(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace)).filter(lower(col("active")).equalTo("true"))
     val userDF = loadData(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
     val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace)).filter(lower(col("isdeleted")) === "false")
