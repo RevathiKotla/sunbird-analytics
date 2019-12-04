@@ -26,28 +26,42 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
 
   def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None) {
 
-    JobLogger.init("Assessment Metrics")
-    JobLogger.start("Assessment Job Started executing", Option(Map("config" -> config, "model" -> name)))
-    val jobConfig = JSONUtils.deserialize[JobConfig](config)
-    JobContext.parallelization = jobConfig.parallelization.getOrElse(10) // Default to 10
+      try {
+          JobLogger.init("Assessment Metrics")
+          JobLogger.start("Assessment Job Started executing", Option(Map("config" -> config, "model" -> name)))
+          val jobConfig = JSONUtils.deserialize[JobConfig](config)
+          JobContext.parallelization = jobConfig.parallelization.getOrElse(10) // Default to 10
 
-    implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
-    implicit val frameworkContext: FrameworkContext = getReportingFrameworkContext();
-    execute(jobConfig)
+          implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
+          implicit val frameworkContext: FrameworkContext = getReportingFrameworkContext();
+          execute(jobConfig)
+      } catch {
+          case e: Exception =>
+              println(e.getMessage);
+              throw e;
+      }
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext, fc: FrameworkContext) = {
+
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val readConsistencyLevel: String = AppConf.getConfig("assessment.metrics.cassandra.input.consistency")
     val sparkConf = sc.getConf
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
+      println("Started spark")
     implicit val spark: SparkSession = SparkSession.builder.config(sparkConf).getOrCreate()
+      println("got spark and started prepare report")
     val reportDF = prepareReport(spark, loadData).cache()
+      println("ended prepare report and start denormassessment")
     val denormalizedDF = denormAssessment(reportDF)
+      println("ended denormassessment and started saveReport")
     saveReport(denormalizedDF, tempDir)
+      println("ended saveReport and start unpersist")
     reportDF.unpersist(true)
+      println("stop report unpersist")
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
     spark.stop()
+      println("stop spark")
   }
 
   /**
