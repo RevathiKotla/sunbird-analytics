@@ -72,6 +72,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
    * @return
    */
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
+      println("started the df load" , settings.get("table"))
     spark
       .read
       .format("org.apache.spark.sql.cassandra")
@@ -105,7 +106,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
         col("userid"),
         col("active"),
         courseBatchDF.col("courseid"))
-
+     println("the join  userCourseDenormDF")
     /*
     *userCourseDenormDF lacks some of the user information that need to be part of the report
     *here, it will add some more user details
@@ -122,22 +123,25 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
         col("userid"),
         col("locationids"),
         concat_ws(" ", col("firstname"), col("lastname")).as("username"))
+      println("the join  userDenormDF")
     /**
      * externalIdMapDF - Filter out the external id by idType and provider and Mapping userId and externalId
      */
     val externalIdMapDF = userDF.join(externalIdentityDF, externalIdentityDF.col("idtype") === userDF.col("channel") && externalIdentityDF.col("provider") === userDF.col("channel") && externalIdentityDF.col("userid") === userDF.col("userid"), "inner")
       .select(externalIdentityDF.col("externalid"), externalIdentityDF.col("userid"))
-
+      println("the join  externalIdDF")
     /*
     * userDenormDF lacks organisation details, here we are mapping each users to get the organisationids
     * */
     val userRootOrgDF = userDenormDF
       .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && userOrgDF.col("organisationid") === userDenormDF.col("rootorgid"))
       .select(userDenormDF.col("*"), col("organisationid"))
+      println("the join  useRootDF")
 
     val userSubOrgDF = userDenormDF
       .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && userOrgDF.col("organisationid") =!= userDenormDF.col("rootorgid"))
       .select(userDenormDF.col("*"), col("organisationid"))
+      println("the join  userSubORgDf")
 
     val rootOnlyOrgDF = userRootOrgDF
       .join(userSubOrgDF, Seq("userid"), "leftanti")
