@@ -21,23 +21,13 @@ class TestStateAdminReportJob extends BaseReportSpec with MockFactory {
   override def beforeAll(): Unit = {
     super.beforeAll()
     spark = getSparkSession();
-    EmbeddedCassandra.loadData("src/test/resources/reports/reports_test_data.cql"); // Load test data in embedded cassandra server
+    EmbeddedCassandra.loadData("src/test/resources/reports/reports_test_data.cql") // Load test data in embedded cassandra server
   }
 
 
   "StateAdminReportJob" should "generate reports" in {
     val reportDF = StateAdminReportJob.generateReport()(spark)
-    // There are only 2 state information in the test csv
-    assert(reportDF.count() == 3)
-  }
-
-  it should "Should able to rename the dir" in {
-    val fsFileUtils = new HDFSFileUtils(className, JobLogger)
-    val files = fsFileUtils.getSubdirectories(s"$AppConf.getConfig('admin.metrics.temp.dir')/renamed")
-    files.map { oneChannelDir =>
-      val newDirName = oneChannelDir.getParent() + "/" + "Test"
-      fsFileUtils.renameDirectory(oneChannelDir.getAbsolutePath(), newDirName)
-    }
+    assert(reportDF.select("School id").count() == 6)
   }
 
 }
