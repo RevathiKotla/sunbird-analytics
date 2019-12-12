@@ -95,9 +95,10 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
 
         // We can directly write to the slug folder
         val blockDataWithSlug = generateGeoBlockData(organisationDF)
-        val resultDF = blockDataWithSlug.join(claimedShadowUserDF, blockDataWithSlug.col("externalid") === (claimedShadowUserDF.col("orgextid")),"left")
-        resultDF.groupBy(col("slug"),col("District name").as("districtName")).
-          agg(countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"), count("userextid").as("registered")).write
+        val userDistrictSummaryDF = blockDataWithSlug.join(claimedShadowUserDF, blockDataWithSlug.col("externalid") === (claimedShadowUserDF.col("orgextid")),"left")
+        val resultDF = userDistrictSummaryDF.groupBy(col("slug"),col("index"), col("District name").as("districtName")).
+          agg(countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"), count("userextid").as("registered"))
+        resultDF.write
           .partitionBy("slug")
           .mode("overwrite")
           .json(s"$summaryDir")
@@ -105,7 +106,7 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "validated-user-summary-district")
         fSFileUtils.purgeDirectory(summaryDir)
 
-        blockDataWithSlug
+        resultDF
     }
 
     private def getChannelSlugMap(organisationDF: DataFrame)(implicit sparkSession: SparkSession): Map[String, String] = {
@@ -239,6 +240,5 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
 
         val storageService = getReportStorageService();
         storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-        storageService.closeContext();
     }
 }
